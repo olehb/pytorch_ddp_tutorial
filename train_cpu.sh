@@ -1,3 +1,3 @@
 #!/bin/bash
 
-python ddp_tutorial.py
+python ddp_tutorial_cpu.py

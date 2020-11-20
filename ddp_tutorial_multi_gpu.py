@@ -31,7 +31,7 @@ def create_data_loaders(rank: int,
     train_loader = DataLoader(train_dataset,
                               batch_size=batch_size,
                               shuffle=False,  # This is mandatory to set this to False here, shuffling is done by Sampler
-                              num_workers=0,  # This is important to load data in the same process, so it should be 0
+                              num_workers=4,  # This is important to load data in the same process, so it should be 0
                               sampler=sampler,
                               pin_memory=True)
 
@@ -43,7 +43,7 @@ def create_data_loaders(rank: int,
     test_loader = DataLoader(test_dataset,
                              batch_size=batch_size,
                              shuffle=True,
-                             num_workers=0,
+                             num_workers=4,
                              pin_memory=True)
 
     return train_loader, test_loader
@@ -63,6 +63,7 @@ def create_model():
 
 
 def main(rank: int,
+         epochs: int,
          model: nn.Module,
          train_loader: DataLoader,
          test_loader: DataLoader) -> nn.Module:
@@ -75,7 +76,7 @@ def main(rank: int,
     loss = nn.CrossEntropyLoss()
 
     # train the model
-    for i in range(10):
+    for i in range(epochs):
         model.train()
         train_loader.sampler.set_epoch(i)
 
@@ -122,6 +123,9 @@ if __name__ == '__main__':
     parser.add_argument("--local_rank", type=int)
     args = parser.parse_args()
 
+    batch_size = 128
+    epochs = 10
+
     rank = args.local_rank
     world_size = torch.cuda.device_count()
 
@@ -129,8 +133,9 @@ if __name__ == '__main__':
     torch.distributed.init_process_group(backend=Backend.NCCL,
                                          init_method='env://')
 
-    train_loader, test_loader = create_data_loaders(rank, world_size, 128)
+    train_loader, test_loader = create_data_loaders(rank, world_size, batch_size)
     model = main(rank=rank,
+                 epochs=epochs,
                  model=create_model(),
                  train_loader=train_loader,
                  test_loader=test_loader)

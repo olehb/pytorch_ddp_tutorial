@@ -23,7 +23,7 @@ def create_data_loaders(batch_size: int) -> Tuple[DataLoader, DataLoader]:
     train_loader = DataLoader(train_dataset,
                               batch_size=batch_size,
                               shuffle=True,
-                              num_workers=0,
+                              num_workers=4,
                               pin_memory=True)
 
     # This is not necessary to use distributed sampler for the test or validation sets.
@@ -34,7 +34,7 @@ def create_data_loaders(batch_size: int) -> Tuple[DataLoader, DataLoader]:
     test_loader = DataLoader(test_dataset,
                              batch_size=batch_size,
                              shuffle=True,
-                             num_workers=0,
+                             num_workers=4,
                              pin_memory=True)
 
     return train_loader, test_loader
@@ -53,7 +53,8 @@ def create_model():
     return model
 
 
-def main(model: nn.Module,
+def main(epochs: int,
+         model: nn.Module,
          train_loader: DataLoader,
          test_loader: DataLoader) -> nn.Module:
     # initialize optimizer and loss function
@@ -61,7 +62,7 @@ def main(model: nn.Module,
     loss = nn.CrossEntropyLoss()
 
     # train the model
-    for i in range(10):
+    for i in range(epochs):
         model.train()
         epoch_loss = 0
         # train the model for one epoch
@@ -93,12 +94,16 @@ def main(model: nn.Module,
 
         print(f"Epoch={i}, train_loss={epoch_loss:.4f}, val_loss={val_loss:.4f}")
 
-    return model.module
+    return model
 
 
 if __name__ == '__main__':
-    train_loader, test_loader = create_data_loaders(128)
-    model = main(model=create_model(),
+    batch_size = 128
+    epochs = 10
+
+    train_loader, test_loader = create_data_loaders(batch_size)
+    model = main(epochs=epochs,
+                 model=create_model(),
                  train_loader=train_loader,
                  test_loader=test_loader)
 
