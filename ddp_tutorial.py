@@ -3,6 +3,8 @@ from torchvision import datasets, transforms
 from torch import nn, optim
 from tqdm import tqdm
 
+DISABLE_TQDM = True
+
 
 def main():
     # download train dataset
@@ -49,7 +51,7 @@ def main():
     for i in range(10):
         epoch_loss = 0
         # train the model for one epoch
-        pbar = tqdm(train_loader)
+        pbar = tqdm(train_loader, disable=DISABLE_TQDM)
         for x, y in pbar:
             x = x.view(x.shape[0], -1)
             optimizer.zero_grad()
@@ -65,7 +67,7 @@ def main():
         # calculate validation loss
         with torch.no_grad():
             val_loss = 0
-            pbar = tqdm(test_loader)
+            pbar = tqdm(test_loader, disable=DISABLE_TQDM)
             for x, y in pbar:
                 x = x.view(x.shape[0], -1)
                 y_hat = model(x)
