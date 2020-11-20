@@ -18,7 +18,7 @@ def main():
     # download test dataset
     test_dataset = datasets.MNIST('./mnist_data',
                                   download=True,
-                                  train=True,
+                                  train=False,
                                   transform=transforms.Compose([
                                       transforms.ToTensor(),
                                       transforms.Normalize((0.1307,), (0.3081,))
