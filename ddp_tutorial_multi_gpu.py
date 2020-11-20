@@ -31,7 +31,7 @@ def create_data_loaders(rank: int,
     train_loader = DataLoader(train_dataset,
                               batch_size=batch_size,
                               shuffle=False,  # This is mandatory to set this to False here, shuffling is done by Sampler
-                              num_workers=4,  # This is important to load data in the same process, so it should be 0
+                              num_workers=4,
                               sampler=sampler,
                               pin_memory=True)
 
