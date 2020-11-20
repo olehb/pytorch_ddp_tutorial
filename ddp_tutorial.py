@@ -2,6 +2,7 @@ import torch
 from torchvision import datasets, transforms
 from torch import nn, optim
 
+
 def main():
     # download train dataset
     train_dataset = datasets.MNIST('./mnist_data',
@@ -11,7 +12,6 @@ def main():
                                        transforms.ToTensor(),
                                        transforms.Normalize((0.1307,), (0.3081,))
                                    ]))
-
     # download test dataset
     test_dataset = datasets.MNIST('./mnist_data',
                                   download=True,
@@ -20,19 +20,16 @@ def main():
                                       transforms.ToTensor(),
                                       transforms.Normalize((0.1307,), (0.3081,))
                                   ]))
-
     # create train data loader
     train_loader = torch.utils.data.DataLoader(train_dataset,
                                                batch_size=128,
                                                shuffle=True,
                                                num_workers=4)
-
     # create test data loader
     test_loader = torch.utils.data.DataLoader(test_dataset,
                                               batch_size=128,
                                               shuffle=True,
                                               num_workers=4)
-
     # create model architecture
     model = nn.Sequential(
         nn.Linear(28*28, 128),
@@ -77,4 +74,3 @@ def main():
 if __name__ == '__main__':
     model = main()
     # serialize and publish the model etc.
-
