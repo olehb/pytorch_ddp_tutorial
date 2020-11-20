@@ -76,7 +76,6 @@ def main(rank: int,
     for i in range(10):
         model.train()
         train_loader.sampler.set_epoch(i)
-        test_loader.sampler.set_epoch(i)
 
         epoch_loss = 0
         # train the model for one epoch
@@ -128,4 +127,4 @@ if __name__ == '__main__':
                  test_loader=test_loader)
 
     if rank == 0:
-        model.save_pretrained('./output')
+        torch.save(model.state_dict(), 'model.pt')
