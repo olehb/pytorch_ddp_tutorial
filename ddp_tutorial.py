@@ -42,7 +42,8 @@ def create_data_loaders(rank: int,
     test_loader = DataLoader(test_dataset,
                              batch_size=batch_size,
                              shuffle=True,
-                             num_workers=0)
+                             num_workers=0,
+                             pin_memory=True)
 
     return train_loader, test_loader
 
@@ -50,12 +51,12 @@ def create_data_loaders(rank: int,
 def create_model():
     # create model architecture
     model = nn.Sequential(
-        nn.Linear(28*28, 128),
+        nn.Linear(28*28, 128),  # MNIST images are 28x28 pixels
         nn.ReLU(),
         nn.Dropout(0.2),
         nn.Linear(128, 128),
         nn.ReLU(),
-        nn.Linear(128, 10, bias=False)
+        nn.Linear(128, 10, bias=False)  # 10 classes to predict
     )
     return model
 
@@ -80,8 +81,8 @@ def main(rank: int,
         epoch_loss = 0
         # train the model for one epoch
         for x, y in train_loader:
-            x = x.to(device)
-            y = y.to(device)
+            x = x.to(device, non_blocking=True)
+            y = y.to(device, non_blocking=True)
 
             x = x.view(x.shape[0], -1)
             optimizer.zero_grad()
@@ -96,8 +97,8 @@ def main(rank: int,
             model.eval()
             val_loss = 0
             for x, y in test_loader:
-                x = x.to(device)
-                y = y.to(device)
+                x = x.to(device, non_blocking=True)
+                y = y.to(device, non_blocking=True)
                 x = x.view(x.shape[0], -1)
                 y_hat = model(x)
                 batch_loss = loss(y_hat, y)
