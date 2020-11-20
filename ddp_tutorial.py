@@ -1,5 +1,6 @@
 import argparse
 from typing import Tuple
+from tqdm import tqdm
 
 import torch
 from torch import nn, optim
@@ -37,7 +38,7 @@ def create_data_loaders(rank: int,
     # This is not necessary to use distributed sampler for the test or validation sets.
     test_dataset = datasets.MNIST(dataset_loc,
                                   download=True,
-                                  train=True,
+                                  train=False,
                                   transform=transform)
     test_loader = DataLoader(test_dataset,
                              batch_size=batch_size,
@@ -80,7 +81,8 @@ def main(rank: int,
 
         epoch_loss = 0
         # train the model for one epoch
-        for x, y in train_loader:
+        pbar = tqdm(train_loader)
+        for x, y in pbar:
             x = x.to(device, non_blocking=True)
             y = y.to(device, non_blocking=True)
 
@@ -90,21 +92,27 @@ def main(rank: int,
             batch_loss = loss(y_hat, y)
             batch_loss.backward()
             optimizer.step()
-            epoch_loss += batch_loss.item() / x.shape[0]
+            batch_loss_scalar = batch_loss.item()
+            epoch_loss += batch_loss_scalar / x.shape[0]
+            pbar.set_description(f'training batch_loss={batch_loss_scalar:.4f}')
 
         # calculate validation loss
         with torch.no_grad():
             model.eval()
             val_loss = 0
-            for x, y in test_loader:
+            pbar = tqdm(test_loader)
+            for x, y in pbar:
                 x = x.to(device, non_blocking=True)
                 y = y.to(device, non_blocking=True)
                 x = x.view(x.shape[0], -1)
                 y_hat = model(x)
                 batch_loss = loss(y_hat, y)
-                val_loss += batch_loss.item() / x.shape[0]
+                batch_loss_scalar = batch_loss.item()
 
-        print(f"Epoch={i}, train_loss={epoch_loss}, val_loss={val_loss}")
+                val_loss += batch_loss_scalar / x.shape[0]
+                pbar.set_description(f'validation batch_loss={batch_loss_scalar:.4f}')
+
+        print(f"Epoch={i}, train_loss={epoch_loss:.4f}, val_loss={val_loss:.4f}")
 
     return model.module
 
