@@ -1,6 +1,7 @@
 import torch
 from torchvision import datasets, transforms
 from torch import nn, optim
+from tqdm import tqdm
 
 
 def main():
@@ -32,7 +33,7 @@ def main():
                                               num_workers=4)
     # create model architecture
     model = nn.Sequential(
-        nn.Linear(28*28, 128),
+        nn.Linear(28 * 28, 128),
         nn.ReLU(),
         nn.Dropout(0.2),
         nn.Linear(128, 128),
@@ -48,25 +49,33 @@ def main():
     for i in range(10):
         epoch_loss = 0
         # train the model for one epoch
-        for x, y in train_loader:
+        pbar = tqdm(train_loader)
+        for x, y in pbar:
             x = x.view(x.shape[0], -1)
             optimizer.zero_grad()
             y_hat = model(x)
             batch_loss = loss(y_hat, y)
             batch_loss.backward()
             optimizer.step()
-            epoch_loss += batch_loss.item() / x.shape[0]
+
+            batch_loss_scalar = batch_loss.item()
+            epoch_loss += batch_loss_scalar / x.shape[0]
+            pbar.set_description(f'training batch_loss={batch_loss_scalar:.4f}')
 
         # calculate validation loss
         with torch.no_grad():
             val_loss = 0
-            for x, y in test_loader:
+            pbar = tqdm(test_loader)
+            for x, y in pbar:
                 x = x.view(x.shape[0], -1)
                 y_hat = model(x)
                 batch_loss = loss(y_hat, y)
-                val_loss += batch_loss.item() / x.shape[0]
 
-        print(f"Epoch={i}, train_loss={epoch_loss}, val_loss={val_loss}")
+                batch_loss_scalar = batch_loss.item()
+                val_loss += batch_loss_scalar / x.shape[0]
+                pbar.set_description(f'validation batch_loss={batch_loss_scalar:.4f}')
+
+        print(f"Epoch={i}, train_loss={epoch_loss:.4f}, val_loss={val_loss:.4f}")
 
     return model
 
